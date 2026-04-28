@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ListingBoost">
+<title>ListingBoost AI</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0f0f0;
+    --text2: #888;
+    --text3: #555;
+    --accent: #e8e8e8;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --blue: #60a5fa;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+
+  html { height: 100%; overflow: hidden; }
+  body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Header */
+  .topbar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 10px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+  .logo-text span { color: var(--text2); font-weight: 400; }
+  .api-btn {
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+  }
+  .api-btn.configured { color: var(--green); border-color: rgba(74,222,128,0.3); }
+
+  /* Tabs */
+  .tabs {
+    flex-shrink: 0;
+    display: flex;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 11px 0;
+    font-size: 13px;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 1.5px solid transparent;
+    transition: all 0.15s;
+    font-weight: 500;
+  }
+  .tab.active { color: var(--text); border-bottom-color: var(--text); }
+
+  /* Scroll container */
+  .scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px;
+    padding-bottom: 32px;
+  }
+
+  /* Form elements */
+  .field { margin-bottom: 14px; }
+  .lbl {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 6px;
+  }
+  .req { color: var(--red); }
+
+  input[type=text], input[type=password], select, textarea {
+    width: 100%;
+    background: var(--surface);
+    color: var(--text);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: rgba(255,255,255,0.3);
+  }
+  textarea { resize: none; line-height: 1.5; min-height: 90px; }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Platform chips */
+  .chip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .chip {
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 9px 10px;
+    font-size: 13px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--text2);
+    transition: all 0.15s;
+    background: var(--surface);
+  }
+  .chip.sel { border-color: rgba(255,255,255,0.4); color: var(--text); background: var(--surface2); font-weight: 500; }
+
+  /* Tone chips */
+  .tone-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tone-chip {
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 13px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text3);
+    transition: all 0.15s;
+  }
+  .tone-chip.sel { border-color: rgba(255,255,255,0.35); color: var(--text); }
+
+  /* Keywords */
+  .kw-row { display: flex; gap: 7px; margin-bottom: 8px; }
+  .kw-row input { flex: 1; }
+  .kw-add {
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .kw-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .kw-tag {
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text2);
+  }
+  .kw-tag button { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 15px; line-height: 1; padding: 0; }
+
+  /* Char count */
+  .char-c { font-size: 10px; color: var(--text3); text-align: right; margin-top: 3px; }
+
+  /* Main button */
+  .gen-btn {
+    width: 100%;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: opacity 0.15s;
+    letter-spacing: -0.2px;
+  }
+  .gen-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .gen-btn:active { opacity: 0.85; }
+
+  /* Output */
+  .output-section { margin-top: 20px; }
+
+  .score-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .score-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: center;
+    border: 0.5px solid var(--border);
+  }
+  .score-val { font-size: 24px; font-weight: 600; }
+  .score-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; }
+  .g { color: var(--green); }
+  .a { color: var(--amber); }
+  .r { color: var(--red); }
+
+  .out-block {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 13px;
+    margin-bottom: 10px;
+  }
+  .out-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .out-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); }
+  .copy-btn {
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-size: 11px;
+    color: var(--text2);
+    cursor: pointer;
+  }
+  .copy-btn:active { opacity: 0.7; }
+  .out-title { font-size: 15px; font-weight: 500; line-height: 1.4; color: var(--text); }
+  .out-text { font-size: 13px; line-height: 1.6; color: var(--text2); }
+  .bullet { display: flex; gap: 8px; margin-bottom: 5px; font-size: 13px; line-height: 1.5; }
+  .bullet-dot { color: var(--text3); flex-shrink: 0; }
+
+  .moat-note {
+    background: rgba(74,222,128,0.05);
+    border: 0.5px solid rgba(74,222,128,0.15);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .moat-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+
+  .action-row { display: flex; gap: 8px; margin-top: 4px; }
+  .act-btn {
+    flex: 1;
+    padding: 11px;
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius);
+    background: none;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .act-btn.primary { background: var(--text); color: var(--bg); border-color: transparent; }
+  .act-btn:active { opacity: 0.8; }
+
+  /* Loading */
+  .loading-state { text-align: center; padding: 40px 20px; }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-lbl { font-size: 13px; color: var(--text3); }
+  .loading-sub { font-size: 11px; color: var(--text3); margin-top: 4px; opacity: 0.6; }
+
+  /* Error */
+  .err-box {
+    background: rgba(248,113,113,0.07);
+    border: 0.5px solid rgba(248,113,113,0.25);
+    border-radius: var(--radius);
+    padding: 12px;
+    font-size: 13px;
+    color: var(--red);
+    margin-top: 14px;
+  }
+
+  /* History */
+  .hist-item {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 13px;
+    margin-bottom: 9px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .hist-item:active { border-color: var(--border2); }
+  .hist-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .hist-meta { font-size: 11px; color: var(--text3); display: flex; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    background: rgba(74,222,128,0.1);
+    color: var(--green);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    float: right;
+  }
+
+  /* API setup modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: flex-end;
+    z-index: 100;
+  }
+  .modal-sheet {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    border-top: 0.5px solid var(--border2);
+  }
+  .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+  .modal-sub { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 16px; }
+  .modal-steps { background: var(--surface2); border-radius: var(--radius); padding: 13px; margin-bottom: 16px; }
+  .modal-step { font-size: 13px; color: var(--text2); margin-bottom: 6px; line-height: 1.5; }
+  .modal-step:last-child { margin-bottom: 0; }
+  .modal-step a { color: var(--blue); text-decoration: none; }
+  .modal-save {
+    width: 100%;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .step-num { color: var(--text3); margin-right: 5px; }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 50px 20px; }
+  .empty-title { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; color: var(--text3); line-height: 1.5; }
+
+  /* Divider */
+  .sep { height: 0.5px; background: var(--border); margin: 18px 0; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: var(--bg);
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.2s;
+    pointer-events: none;
+    z-index: 200;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <div class="topbar">
+    <div class="logo-text">ListingBoost <span>AI</span></div>
+    <button class="api-btn" id="apiToggle" onclick="openApiModal()">⚙ API Key</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('gen')">Générer</div>
+    <div class="tab" onclick="switchTab('hist')">Historique</div>
+  </div>
+
+  <!-- GENERATE TAB -->
+  <div class="scroll-area" id="tab-gen">
+
+    <!-- Platform -->
+    <div class="field">
+      <label class="lbl">Plateforme <span class="req">*</span></label>
+      <div class="chip-grid">
+        <div class="chip sel" onclick="selPlatform(this,'Amazon US')">Amazon US</div>
+        <div class="chip" onclick="selPlatform(this,'Amazon FR')">Amazon FR</div>
+        <div class="chip" onclick="selPlatform(this,'Shopify')">Shopify</div>
+        <div class="chip" onclick="selPlatform(this,'Etsy')">Etsy</div>
+      </div>
+    </div>
+
+    <!-- Category + Lang -->
+    <div class="row2">
+      <div class="field">
+        <label class="lbl">Catégorie <span class="req">*</span></label>
+        <select id="cat">
+          <option>Kitchen & Dining</option>
+          <option>Electronics</option>
+          <option>Beauty & Care</option>
+          <option>Sports & Fitness</option>
+          <option>Home & Garden</option>
+          <option>Pet Supplies</option>
+          <option>Clothing</option>
+          <option>Baby Products</option>
+          <option>Tools & DIY</option>
+          <option>Toys & Games</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="lbl">Langue output</label>
+        <select id="lang">
+          <option>Anglais</option>
+          <option>Français</option>
+          <option>Espagnol</option>
+          <option>Allemand</option>
+          <option>Portugais</option>
+          <option>Arabe</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Product name -->
+    <div class="field">
+      <label class="lbl">Nom du produit <span class="req">*</span></label>
+      <input type="text" id="pName" placeholder="Ex: Stainless Steel French Press 34oz" maxlength="200" oninput="cc(this,'cc1')">
+      <div class="char-c" id="cc1">0 / 200</div>
+    </div>
+
+    <!-- Specs -->
+    <div class="field">
+      <label class="lbl">Spécifications <span class="req">*</span></label>
+      <textarea id="specs" placeholder="Matériaux, dimensions, couleurs, fonctionnalités clés, usage..." maxlength="800" oninput="cc(this,'cc2')"></textarea>
+      <div class="char-c" id="cc2">0 / 800</div>
+    </div>
+
+    <!-- Keywords -->
+    <div class="field">
+      <label class="lbl">Keywords SEO cibles</label>
+      <div class="kw-row">
+        <input type="text" id="kwInp" placeholder="Ajouter keyword..." onkeydown="if(event.key==='Enter'){addKw();}">
+        <button class="kw-add" onclick="addKw()">+</button>
+      </div>
+      <div class="kw-tags" id="kwTags"></div>
+    </div>
+
+    <!-- Tone -->
+    <div class="field">
+      <label class="lbl">Ton</label>
+      <div class="tone-row">
+        <div class="tone-chip sel" onclick="selTone(this,'Premium')">Premium</div>
+        <div class="tone-chip" onclick="selTone(this,'Budget')">Budget</div>
+        <div class="tone-chip" onclick="selTone(this,'Technique')">Technique</div>
+        <div class="tone-chip" onclick="selTone(this,'Lifestyle')">Lifestyle</div>
+        <div class="tone-chip" onclick="selTone(this,'Urgence')">Urgence</div>
+      </div>
+    </div>
+
+    <!-- Price -->
+    <div class="field">
+      <label class="lbl">Prix (optionnel)</label>
+      <input type="text" id="price" placeholder="Ex: $29.99">
+    </div>
+
+    <button class="gen-btn" id="genBtn" onclick="generate()">Générer la fiche →</button>
+
+    <!-- Output zone -->
+    <div id="outZone"></div>
+
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="scroll-area" id="tab-hist" style="display:none;">
+    <div id="histContent">
+      <div class="empty">
+        <div class="empty-title">Aucune fiche encore</div>
+        <div class="empty-sub">Tes fiches générées apparaîtront ici et seront sauvegardées localement.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- API Modal -->
+<div class="modal-overlay" id="apiModal" style="display:none;" onclick="if(event.target===this&&apiKey)closeApiModal()">
+  <div class="modal-sheet">
+    <div class="modal-title">Configuration API Gemini</div>
+    <div class="modal-sub">L'API Gemini est 100% gratuite (1500 req/jour). Il te faut une clé API Google.</div>
+    <div class="modal-steps">
+      <div class="modal-step"><span class="step-num">1.</span>Va sur <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a></div>
+      <div class="modal-step"><span class="step-num">2.</span>Clique <strong>Create API Key</strong> → copie la clé</div>
+      <div class="modal-step"><span class="step-num">3.</span>Colle-la ci-dessous et sauvegarde</div>
+    </div>
+    <div class="field">
+      <label class="lbl">Ta clé API Gemini</label>
+      <input type="password" id="apiInput" placeholder="AIza...">
+    </div>
+    <button class="modal-save" onclick="saveApi()">Sauvegarder & Continuer</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State
+let platform = 'Amazon US';
+let tone = 'Premium';
+let keywords = [];
+let history = JSON.parse(localStorage.getItem('lb_history') || '[]');
+let apiKey = localStorage.getItem('lb_apikey') || '';
+let generating = false;
+
+// ── Init
+window.addEventListener('load', () => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+  updateApiBtn();
+  if (!apiKey) setTimeout(openApiModal, 400);
+});
+
+// ── Tab switch
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((el, i) => {
+    el.classList.toggle('active', (i === 0 && t === 'gen') || (i === 1 && t === 'hist'));
+  });
+  document.getElementById('tab-gen').style.display = t === 'gen' ? 'block' : 'none';
+  document.getElementById('tab-hist').style.display = t === 'hist' ? 'block' : 'none';
+  if (t === 'hist') renderHistory();
+}
+
+// ── Platform / Tone
+function selPlatform(el, val) {
+  document.querySelectorAll('.chip').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+  platform = val;
+}
+function selTone(el, val) {
+  document.querySelectorAll('.tone-chip').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+  tone = val;
+}
+
+// ── Keywords
+function addKw() {
+  const inp = document.getElementById('kwInp');
+  const v = inp.value.trim();
+  if (!v || keywords.includes(v)) { inp.value = ''; return; }
+  keywords.push(v);
+  inp.value = '';
+  renderKw();
+}
+function removeKw(kw) {
+  keywords = keywords.filter(k => k !== kw);
+  renderKw();
+}
+function renderKw() {
+  document.getElementById('kwTags').innerHTML = keywords.map(k =>
+    `<div class="kw-tag">${k}<button onclick="removeKw('${k.replace(/'/g,"\\'")}')">×</button></div>`
+  ).join('');
+}
+
+// ── Char count
+function cc(el, id) {
+  document.getElementById(id).textContent = el.value.length + ' / ' + el.maxLength;
+}
+
+// ── API modal
+function openApiModal() {
+  const m = document.getElementById('apiModal');
+  m.style.display = 'flex';
+  if (apiKey) document.getElementById('apiInput').value = apiKey;
+}
+function closeApiModal() {
+  document.getElementById('apiModal').style.display = 'none';
+}
+function saveApi() {
+  const v = document.getElementById('apiInput').value.trim();
+  if (!v) { showToast('Entre ta clé API'); return; }
+  apiKey = v;
+  localStorage.setItem('lb_apikey', v);
+  updateApiBtn();
+  closeApiModal();
+  showToast('Clé API sauvegardée ✓');
+}
+function updateApiBtn() {
+  const btn = document.getElementById('apiToggle');
+  if (apiKey) {
+    btn.textContent = '● API Active';
+    btn.classList.add('configured');
+  } else {
+    btn.textContent = '⚙ API Key';
+    btn.classList.remove('configured');
+  }
+}
+
+// ── Toast
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── Scoring
+function score(title, bullets, desc) {
+  const content = (title + bullets.join('') + desc).toLowerCase();
+  const kwFound = keywords.length
+    ? keywords.filter(k => content.includes(k.toLowerCase())).length
+    : 0;
+  const kwScore = keywords.length ? Math.round((kwFound / keywords.length) * 100) : 72;
+  const tLen = title.length;
+  const titleScore = tLen >= 100 && tLen <= 200 ? 92 : tLen >= 60 ? 71 : 48;
+  const readScore = Math.min(96, 58 + bullets.length * 8);
+  const overall = Math.round(kwScore * 0.38 + titleScore * 0.32 + readScore * 0.3);
+  return { kwScore, titleScore, readScore, overall };
+}
+
+function scoreClass(n) {
+  return n >= 78 ? 'g' : n >= 52 ? 'a' : 'r';
+}
+
+// ── Generate
+async function generate() {
+  if (generating) return;
+  if (!apiKey) { openApiModal(); return; }
+
+  const name = document.getElementById('pName').value.trim();
+  const specs = document.getElementById('specs').value.trim();
+  if (!name || !specs) { showToast('Nom et spécifications requis'); return; }
+
+  generating = true;
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  btn.textContent = 'Génération en cours...';
+
+  const lang = document.getElementById('lang').value;
+  const cat = document.getElementById('cat').value;
+  const price = document.getElementById('price').value.trim();
+
+  document.getElementById('outZone').innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <div class="loading-lbl">Pipeline IA actif · ${platform}</div>
+      <div class="loading-sub">Optimisation SEO en cours...</div>
+    </div>`;
+
+  const prompt = `You are an elite e-commerce copywriter specialized in ${platform} optimization.
+
+Product: ${name}
+Category: ${cat}
+Specs: ${specs}
+Platform: ${platform}
+Tone: ${tone}
+Output language: ${lang}
+${price ? 'Price: ' + price : ''}
+${keywords.length ? 'Must integrate these keywords naturally: ' + keywords.join(', ') : ''}
+
+Platform-specific rules:
+- Amazon: Title must start with primary keyword (100-200 chars). Bullets = benefit + feature format. No promotional language in title.
+- Shopify: Storytelling focus, emotional connection, brand voice.
+- Etsy: Handmade/unique angle, long-tail keywords, community tone.
+
+Return ONLY a valid JSON object with exactly this structure (no markdown, no explanation):
+{
+  "seoTitle": "string",
+  "bullets": ["string","string","string","string","string"],
+  "description": "string",
+  "metaTags": ["string","string","string"],
+  "tip": "string (one optimization tip for this specific market)"
+}`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error.message);
+
+    let raw = data.candidates[0].content.parts[0].text;
+    raw = raw.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(raw);
+
+    const scores = score(result.seoTitle, result.bullets, result.description);
+
+    const entry = {
+      id: Date.now(),
+      name, platform, cat, lang, tone,
+      keywords: [...keywords],
+      specs, price, result, scores,
+      timestamp: new Date().toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+    };
+
+    history.unshift(entry);
+    if (history.length > 200) history.pop();
+    localStorage.setItem('lb_history', JSON.stringify(history));
+
+    renderOutput(result, scores, entry);
+
+  } catch (e) {
+    document.getElementById('outZone').innerHTML = `
+      <div class="err-box">
+        <strong>Erreur :</strong> ${e.message}<br><br>
+        <span style="font-size:12px;opacity:0.8;">Vérifie ta clé API Gemini. Si invalide, clique sur ● API Active pour la reconfigurer.</span>
+      </div>`;
+  }
+
+  generating = false;
+  btn.disabled = false;
+  btn.textContent = 'Générer la fiche →';
+}
+
+// ── Render output
+function renderOutput(r, scores, entry) {
+  const allText = `TITRE SEO:\n${r.seoTitle}\n\nBULLETS:\n${r.bullets.map(b => '• ' + b).join('\n')}\n\nDESCRIPTION:\n${r.description}\n\nMETA TAGS:\n${r.metaTags.join(', ')}`;
+
+  document.getElementById('outZone').innerHTML = `
+    <div class="sep"></div>
+    <div class="moat-note">
+      <div class="moat-dot"></div>
+      Fiche #${history.length} · ${entry.timestamp} · Données moat enregistrées
+    </div>
+
+    <div class="score-row">
+      <div class="score-card">
+        <div class="score-val ${scoreClass(scores.overall)}">${scores.overall}</div>
+        <div class="score-lbl">Score global</div>
+      </div>
+      <div class="score-card">
+        <div class="score-val ${scoreClass(scores.kwScore)}">${scores.kwScore}</div>
+        <div class="score-lbl">Keywords</div>
+      </div>
+      <div class="score-card">
+        <div class="score-val ${scoreClass(scores.titleScore)}">${scores.titleScore}</div>
+        <div class="score-lbl">Titre SEO</div>
+      </div>
+      <div class="score-card">
+        <div class="score-val ${scoreClass(scores.readScore)}">${scores.readScore}</div>
+        <div class="score-lbl">Lisibilité</div>
+      </div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-head">
+        <div class="out-label">Titre SEO</div>
+        <button class="copy-btn" onclick="cp(${JSON.stringify(r.seoTitle)})">Copier</button>
+      </div>
+      <div class="out-title">${r.seoTitle}</div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-head">
+        <div class="out-label">Bullet Points</div>
+        <button class="copy-btn" onclick="cp(${JSON.stringify(r.bullets.map(b=>'• '+b).join('\n'))})">Copier</button>
+      </div>
+      ${r.bullets.map(b => `<div class="bullet"><span class="bullet-dot">•</span><span class="out-text">${b}</span></div>`).join('')}
+    </div>
+
+    <div class="out-block">
+      <div class="out-head">
+        <div class="out-label">Description</div>
+        <button class="copy-btn" onclick="cp(${JSON.stringify(r.description)})">Copier</button>
+      </div>
+      <div class="out-text">${r.description}</div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-head"><div class="out-label">Meta Tags</div></div>
+      <div class="kw-tags">${r.metaTags.map(t => `<div class="kw-tag">${t}</div>`).join('')}</div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-head"><div class="out-label">Tip optimisation marché</div></div>
+      <div class="out-text" style="font-style:italic;">${r.tip}</div>
+    </div>
+
+    <div class="action-row">
+      <button class="act-btn primary" onclick="cp(${JSON.stringify(allText)})">Copier tout</button>
+      <button class="act-btn" onclick="resetForm()">Nouvelle fiche</button>
+    </div>
+  `;
+
+  document.getElementById('outZone').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── History
+function renderHistory() {
+  const sec = document.getElementById('histContent');
+  if (!history.length) {
+    sec.innerHTML = `<div class="empty"><div class="empty-title">Aucune fiche encore</div><div class="empty-sub">Génère ta première fiche et elle apparaîtra ici.</div></div>`;
+    return;
+  }
+  sec.innerHTML = `<div style="font-size:11px;color:var(--text3);margin-bottom:12px;">${history.length} fiche${history.length > 1 ? 's' : ''} · Sauvegardées localement</div>` +
+    history.map(e => `
+      <div class="hist-item" onclick="loadEntry(${e.id})">
+        <div><span class="badge">${e.scores.overall}/100</span><div class="hist-name">${e.name}</div></div>
+        <div class="hist-meta"><span>${e.platform}</span><span>${e.lang}</span><span>${e.cat}</span><span>${e.timestamp}</span></div>
+      </div>
+    `).join('');
+}
+
+function loadEntry(id) {
+  const e = history.find(x => x.id === id);
+  if (!e) return;
+  switchTab('gen');
+  renderOutput(e.result, e.scores, e);
+}
+
+// ── Copy
+function cp(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('Copié ✓')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Copié ✓');
+  });
+}
+
+// ── Reset
+function resetForm() {
+  document.getElementById('pName').value = '';
+  document.getElementById('specs').value = '';
+  document.getElementById('price').value = '';
+  document.getElementById('cc1').textContent = '0 / 200';
+  document.getElementById('cc2').textContent = '0 / 800';
+  keywords = [];
+  renderKw();
+  document.getElementById('outZone').innerHTML = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
